@@ -32,6 +32,12 @@ public class GrayKnight : MonoBehaviour
     public Vector3 groundOffset;
     [Range(0, 2)]
     public float groundRadius = 0.5f;
+    [Header("攻擊區域的位移大小")]
+    public Vector2 checkAttackOffset;
+    public Vector3 checkAttackSize;
+    [Header("攻擊冷卻"), Range(0.5f, 5)]
+    public float cdAttack = 3;
+    private float timerAttack;
 
     // 將私人欄位顯示在屬性面板上
     [SerializeField]
@@ -58,6 +64,7 @@ public class GrayKnight : MonoBehaviour
     private void Update()
     {
         CheckState();
+        CheckPlayerInAttackArea();
     }
     private void OnDrawGizmos()
     {
@@ -67,6 +74,13 @@ public class GrayKnight : MonoBehaviour
         //繪製落地判定區域
         Gizmos.color = new Color(0, 1, 0, 0.3f);
         Gizmos.DrawSphere(transform.position + landingOffset, landingRadius);
+        //繪製攻擊判定區域
+        Gizmos.color = new Color(0.5f, 0.3f, 0.1f, 0.3f);
+        Gizmos.DrawCube(
+            transform.position +
+            transform.right * checkAttackOffset.x +
+            transform.up * checkAttackOffset.y,
+            checkAttackSize);
     }
     #endregion
 
@@ -141,6 +155,7 @@ public class GrayKnight : MonoBehaviour
             case StateEnemy.track:
                 break;
             case StateEnemy.attack:
+                Attack();
                 break;
             case StateEnemy.dead:
                 break;
@@ -166,6 +181,32 @@ public class GrayKnight : MonoBehaviour
         rig.velocity = Vector3.zero;
         rig.constraints = RigidbodyConstraints2D.FreezeAll;
         enabled = false;
+    }
+    private void CheckPlayerInAttackArea()
+    {
+        Collider2D hit = Physics2D.OverlapBox(
+            transform.position +
+            transform.right * checkAttackOffset.x +
+            transform.up * checkAttackOffset.y,
+            checkAttackSize, 0, 1 << 7);
+        if (hit) state = StateEnemy.attack;
+    }
+    private void Attack()
+    {
+        if(timerAttack < cdAttack)
+        {
+            timerAttack += Time.deltaTime;
+        }
+        else
+        {
+            AttackMethod();
+        }
+    }
+    private void AttackMethod()
+    {
+        timerAttack = 0;
+        ani.SetTrigger("attack");
+        print("攻擊");
     }
     #endregion
 }
