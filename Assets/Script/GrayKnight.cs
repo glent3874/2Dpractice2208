@@ -190,12 +190,18 @@ public class GrayKnight : MonoBehaviour
             transform.up * checkAttackOffset.y,
             checkAttackSize, 0, 1 << 7);
         if (hit) state = StateEnemy.attack;
+        else
+        {
+            state = StateEnemy.idle;
+            timerAttack = cdAttack - 0.5f;
+        }
     }
     private void Attack()
     {
         if(timerAttack < cdAttack)
         {
             timerAttack += Time.deltaTime;
+            //print(timerAttack);
         }
         else
         {
@@ -206,7 +212,7 @@ public class GrayKnight : MonoBehaviour
     {
         timerAttack = 0;
         ani.SetTrigger("attack");
-        print("§ðÀ»");
+        //print("§ðÀ»");
     }
     #endregion
 }
