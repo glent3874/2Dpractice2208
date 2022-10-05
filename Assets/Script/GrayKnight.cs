@@ -14,6 +14,8 @@ public class GrayKnight : MonoBehaviour
     [Header("目前血量")]
     public int currentHealth;
     public HealthBar healthBar;
+    [Header("攻擊力"), Range(0, 1000)]
+    public int attack = 20;
     [Header("是否在地板上")]
     public bool onGround = false;
     [Header("Jump")]
@@ -38,6 +40,12 @@ public class GrayKnight : MonoBehaviour
     [Header("攻擊冷卻"), Range(0.5f, 5)]
     public float cdAttack = 3;
     private float timerAttack;
+    [Header("第一次攻擊延遲"), Range(0.1f, 3)]
+    public float attackDelayFirst = 0.5f;
+    [Header("第二次攻擊延遲"), Range(0.1f, 3)]
+    public float attackDelaySecond = 0.5f;
+    [Header("第三次攻擊延遲"), Range(0.1f, 3)]
+    public float attackDelayThird = 0.5f;
 
     // 將私人欄位顯示在屬性面板上
     [SerializeField]
@@ -46,6 +54,8 @@ public class GrayKnight : MonoBehaviour
     private AudioSource aud;
     private Rigidbody2D rig;
     private Animator ani;
+    private Player player;
+    Collider2D hit;
     /// <summary>
     /// 水平輸入值
     /// </summary>
@@ -55,11 +65,18 @@ public class GrayKnight : MonoBehaviour
     #region 事件
     private void Start()
     {
+        #region 初始化數值
         currentHealth = hp;
         healthBar.SetMaxHealth(hp);
+        #endregion
+
+        #region 取得元件與玩家類別
         rig = GetComponent<Rigidbody2D>();
         ani = GetComponent<Animator>();
         aud = GetComponent<AudioSource>();
+
+        player = GameObject.Find("Player").GetComponent<Player>();
+        #endregion
     }
     private void Update()
     {
@@ -184,7 +201,7 @@ public class GrayKnight : MonoBehaviour
     }
     private void CheckPlayerInAttackArea()
     {
-        Collider2D hit = Physics2D.OverlapBox(
+        hit = Physics2D.OverlapBox(
             transform.position +
             transform.right * checkAttackOffset.x +
             transform.up * checkAttackOffset.y,
@@ -213,6 +230,12 @@ public class GrayKnight : MonoBehaviour
         timerAttack = 0;
         ani.SetTrigger("attack");
         //print("攻擊");
+        StartCoroutine(DelaySendDamageToPlayer());
+    }
+    private IEnumerator DelaySendDamageToPlayer()
+    {
+        yield return new WaitForSeconds(attackDelayFirst);
+        if(hit) player.Hurt(attack);
     }
     #endregion
 }

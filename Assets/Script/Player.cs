@@ -9,8 +9,9 @@ public class Player : MonoBehaviour
     public float moveSpeed = 10.5f;
     [Header("跳躍高度"), Range(0, 20)]
     public int jumpHeight = 16;
-    [Header("血量"),Range(0,20)]
-    public float hp = 5;
+    [Header("血量"),Range(0,200)]
+    public int hp = 200;
+    public HealthBar healthBar;
     [Header("攻擊力"), Range(0, 1000)]
     public float attack = 20;
     [Header("是否在地板上")]
@@ -51,6 +52,7 @@ public class Player : MonoBehaviour
     #region 事件
     private void Start()
     {
+        healthBar.SetMaxHealth(hp);
         rig = GetComponent<Rigidbody2D>();
         ani = GetComponent<Animator>();
     }
@@ -178,7 +180,6 @@ public class Player : MonoBehaviour
             isAttack = true;
             ani.SetTrigger("attack");
 
-            //
             Collider2D attackhit = Physics2D.OverlapBox(
                 transform.position +
                 transform.right * checkAttackOffset.x +
@@ -208,16 +209,19 @@ public class Player : MonoBehaviour
     /// 受傷
     /// </summary>
     /// <param name="damage">造成的傷害</param>
-    public void Hurt(float damage)
+    public void Hurt(int damage)
     {
-
+        hp -= damage;
+        healthBar.SetHealth(hp);
+        if (hp <= 0) Dead();
     }
     /// <summary>
     /// 死亡
     /// </summary>
     private void Dead()
     {
-
+        hp = 0;
+        //ani.SetBool("dead",true);
     }
     /// <summary>
     /// 吃道具
