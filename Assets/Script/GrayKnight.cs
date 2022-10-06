@@ -40,12 +40,8 @@ public class GrayKnight : MonoBehaviour
     [Header("攻擊冷卻"), Range(0.5f, 5)]
     public float cdAttack = 3;
     private float timerAttack;
-    [Header("第一次攻擊延遲"), Range(0.1f, 3)]
-    public float attackDelayFirst = 0.5f;
-    [Header("第二次攻擊延遲"), Range(0.1f, 3)]
-    public float attackDelaySecond = 0.5f;
-    [Header("第三次攻擊延遲"), Range(0.1f, 3)]
-    public float attackDelayThird = 0.5f;
+    [Header("攻擊延遲"), Range(0.1f, 3)]
+    public float[] attackDelay;
 
     // 將私人欄位顯示在屬性面板上
     [SerializeField]
@@ -186,7 +182,8 @@ public class GrayKnight : MonoBehaviour
     {
         currentHealth -= damage;
         healthBar.SetHealth(currentHealth);
-        ani.SetTrigger("hurt");
+        if (timerAttack < (cdAttack - 0.5f))
+            ani.SetTrigger("hurt");
         if (currentHealth <= 0) Dead();
     }
     private void Dead()
@@ -215,7 +212,7 @@ public class GrayKnight : MonoBehaviour
     }
     private void Attack()
     {
-        if(timerAttack < cdAttack)
+        if (timerAttack < cdAttack)
         {
             timerAttack += Time.deltaTime;
             //print(timerAttack);
@@ -234,8 +231,12 @@ public class GrayKnight : MonoBehaviour
     }
     private IEnumerator DelaySendDamageToPlayer()
     {
-        yield return new WaitForSeconds(attackDelayFirst);
-        if(hit) player.Hurt(attack);
+        for (int i = 0; i < attackDelay.Length; i++)
+        {
+            yield return new WaitForSeconds(attackDelay[i]);
+
+            if (hit) player.Hurt(attack);
+        }
     }
     #endregion
 }

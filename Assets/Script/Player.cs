@@ -221,7 +221,11 @@ public class Player : MonoBehaviour
     private void Dead()
     {
         hp = 0;
-        //ani.SetBool("dead",true);
+        ani.SetBool("dead",true);
+        GetComponent<CapsuleCollider2D>().enabled = false;
+        rig.velocity = Vector3.zero;
+        rig.constraints = RigidbodyConstraints2D.FreezeAll;
+        enabled = false;
     }
     /// <summary>
     /// ¦Y¹D¨ã
