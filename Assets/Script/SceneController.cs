@@ -13,6 +13,6 @@ public class SceneController : MonoBehaviour
 
     private void DelayLoadGameScene()
     {
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene(1);
     }
 }
