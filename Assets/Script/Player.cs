@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Player : MonoBehaviour
 {
@@ -37,6 +38,8 @@ public class Player : MonoBehaviour
     [Header("攻擊區域的位移與大小")]
     public Vector2 checkAttackOffset;
     public Vector3 checkAttackSize;
+    [Header("死亡事件")]
+    public UnityEvent onDead;
 
     private AudioSource aud;
     private Rigidbody2D rig;
@@ -225,6 +228,7 @@ public class Player : MonoBehaviour
         GetComponent<CapsuleCollider2D>().enabled = false;
         rig.velocity = Vector3.zero;
         rig.constraints = RigidbodyConstraints2D.FreezeAll;
+        onDead.Invoke();
         enabled = false;
     }
     /// <summary>
