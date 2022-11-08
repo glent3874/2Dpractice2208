@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GrayKnight : MonoBehaviour
 {
@@ -42,6 +43,8 @@ public class GrayKnight : MonoBehaviour
     private float timerAttack;
     [Header("攻擊延遲"), Range(0.1f, 3)]
     public float[] attackDelay;
+    [Header("死亡事件")]
+    public UnityEvent onDead;
 
     // 將私人欄位顯示在屬性面板上
     [SerializeField]
@@ -194,6 +197,7 @@ public class GrayKnight : MonoBehaviour
         GetComponent<CapsuleCollider2D>().enabled = false;
         rig.velocity = Vector3.zero;
         rig.constraints = RigidbodyConstraints2D.FreezeAll;
+        onDead.Invoke();
         enabled = false;
     }
     private void CheckPlayerInAttackArea()
