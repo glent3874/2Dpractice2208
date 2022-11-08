@@ -19,6 +19,8 @@ public class GameoverController : MonoBehaviour
     public KeyCode kcReplay = KeyCode.R;
     public KeyCode kcQuit = KeyCode.Q;
 
+    public GameObject endMenuUI;
+
     private bool isGameover = false;
 
     private void Update()
@@ -41,6 +43,7 @@ public class GameoverController : MonoBehaviour
     {
         isGameover = true;
         aniFinal.enabled = true;
+        endMenuUI.SetActive(true);
 
         if (win) textFinalTitle.text = stringWin;
         else textFinalTitle.text = stringLose;
