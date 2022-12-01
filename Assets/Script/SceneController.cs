@@ -6,13 +6,23 @@ using UnityEngine.SceneManagement;
 
 public class SceneController : MonoBehaviour
 {
-    public void LoadGameScene()
+    public void LoadGameScene1()
     {
-        Invoke("DelayLoadGameScene", 1);
+        Invoke("DelayLoadGameScene1", 1);
     }
 
-    private void DelayLoadGameScene()
+    public void LoadGameScene2()
+    {
+        Invoke("DelayLoadGameScene2", 1);
+    }
+
+    private void DelayLoadGameScene1()
     {
         SceneManager.LoadScene(1);
+    }
+
+    private void DelayLoadGameScene2()
+    {
+        SceneManager.LoadScene(2);
     }
 }

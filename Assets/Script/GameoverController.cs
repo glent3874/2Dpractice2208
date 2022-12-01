@@ -8,6 +8,8 @@ public class GameoverController : MonoBehaviour
 {
     [Header("結束畫面動畫元件")]
     public Animator aniFinal;
+    [Header("結束畫面元件")]
+    public GameObject endMenuUI;
     [Header("結束標題")]
     public Text textFinalTitle;
     [Header("遊戲結束文字")]
@@ -19,9 +21,13 @@ public class GameoverController : MonoBehaviour
     public KeyCode kcReplay = KeyCode.R;
     public KeyCode kcQuit = KeyCode.Q;
 
-    public GameObject endMenuUI;
-
+    private Scene scene;
     private bool isGameover = false;
+
+    private void Start()
+    {
+        scene = SceneManager.GetActiveScene();
+    }
 
     private void Update()
     {
@@ -31,7 +37,7 @@ public class GameoverController : MonoBehaviour
 
     private void Replay()
     {
-        if (isGameover && Input.GetKeyDown(kcReplay)) SceneManager.LoadScene(1);
+        if (isGameover && Input.GetKeyDown(kcReplay)) SceneManager.LoadScene(scene.buildIndex);
     }
 
     private void Quit()
