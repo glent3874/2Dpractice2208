@@ -16,6 +16,11 @@ public class SceneController : MonoBehaviour
         Invoke("DelayLoadGameScene2", 1);
     }
 
+    public void LoadGameScene3()
+    {
+        Invoke("DelayLoadGameScene3", 1);
+    }
+
     private void DelayLoadGameScene1()
     {
         SceneManager.LoadScene(1);
@@ -24,5 +29,15 @@ public class SceneController : MonoBehaviour
     private void DelayLoadGameScene2()
     {
         SceneManager.LoadScene(2);
+    }
+
+    private void DelayLoadGameScene3()
+    {
+        SceneManager.LoadScene(3);
+    }
+
+    public void Quit()
+    {
+        Application.Quit();
     }
 }
