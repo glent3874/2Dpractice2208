@@ -6,3 +6,6 @@
 arrow移動  
 X鍵攻擊  
 ESC鍵暫停  
+
+Youtube影片展示:  
+<https://youtu.be/wMgzhvW5dyU>
