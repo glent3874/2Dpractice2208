@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// 灰騎士
+/// </summary>
 public class GrayKnight : MonoBehaviour
 {
     #region 欄位
-    [Header("移動速度"), Range(0, 15)]
-    public float moveSpeed = 10.5f;
-    [Header("跳躍高度"), Range(0, 20)]
-    public int jumpHeight = 16;
     [Header("最大血量"), Range(0, 500)]
     public int hp = 100;
     [Header("目前血量")]
@@ -17,24 +16,6 @@ public class GrayKnight : MonoBehaviour
     public HealthBar healthBar;
     [Header("攻擊力"), Range(0, 1000)]
     public int attack = 20;
-    [Header("是否在地板上")]
-    public bool onGround = false;
-    [Header("Jump")]
-    public bool jump = false;
-    [Header("Jump Reload")]
-    public bool jumpReload = false;
-    [Header("Falling")]
-    public bool falling = false;
-    [Header("Landing")]
-    public bool landing = false;
-    [Header("檢查落地區域:位移與半徑")]
-    public Vector3 landingOffset;
-    [Range(0, 2)]
-    public float landingRadius = 0.5f;
-    [Header("檢查地板區域:位移與半徑")]
-    public Vector3 groundOffset;
-    [Range(0, 2)]
-    public float groundRadius = 0.5f;
     [Header("攻擊區域的位移大小")]
     public Vector2 checkAttackOffset;
     public Vector3 checkAttackSize;
@@ -50,15 +31,10 @@ public class GrayKnight : MonoBehaviour
     [SerializeField]
     private StateEnemy state;
 
-    private AudioSource aud;
     private Rigidbody2D rig;
     private Animator ani;
     private Player player;
     Collider2D hit;
-    /// <summary>
-    /// 水平輸入值
-    /// </summary>
-    private float moveValue;
     #endregion
 
     #region 事件
@@ -71,8 +47,6 @@ public class GrayKnight : MonoBehaviour
 
         #region 取得元件與玩家類別
         rig = GetComponent<Rigidbody2D>();
-        ani = GetComponent<Animator>();
-        aud = GetComponent<AudioSource>();
 
         player = GameObject.Find("Player").GetComponent<Player>();
         #endregion
@@ -84,12 +58,6 @@ public class GrayKnight : MonoBehaviour
     }
     private void OnDrawGizmos()
     {
-        //繪製地板判定區域
-        Gizmos.color = new Color(1, 0, 0, 0.3f);
-        Gizmos.DrawSphere(transform.position + groundOffset, groundRadius);
-        //繪製落地判定區域
-        Gizmos.color = new Color(0, 1, 0, 0.3f);
-        Gizmos.DrawSphere(transform.position + landingOffset, landingRadius);
         //繪製攻擊判定區域
         Gizmos.color = new Color(0.5f, 0.3f, 0.1f, 0.3f);
         Gizmos.DrawCube(
@@ -101,81 +69,15 @@ public class GrayKnight : MonoBehaviour
     #endregion
 
     #region 方法
-    private void GetHorizontal()
-    {
-
-    }
-    private void Move(float horizontal)
-    {
-        rig.velocity = new Vector2(horizontal * moveSpeed, rig.velocity.y);
-
-        ani.SetBool("walk", horizontal != 0);
-    }
-    private void TurnDirection()
-    {
-
-    }
-    private void Jump()
-    {
-        Collider2D hit = Physics2D.OverlapCircle(transform.position + groundOffset, groundRadius, 1 << 6);
-        if (hit)
-        {
-            onGround = true;
-            jumpReload = false;
-            landing = false;
-        }
-        else
-        {
-            onGround = false;
-        }
-        //落地判定
-        Collider2D landingHit = Physics2D.OverlapCircle(transform.position + landingOffset, landingRadius, 1 << 6);
-        if (!landingHit)
-        {
-            falling = true;
-        }
-        if (landingHit && falling)
-        {
-            falling = false;
-            jump = false;
-        }
-        if (jump && rig.velocity.y < 5f) jumpReload = true;
-
-        //跳躍物理
-        if (Input.GetKeyDown(KeyCode.UpArrow) && onGround)
-        {
-            jump = true;
-            rig.velocity = new Vector2(rig.velocity.x, jumpHeight);
-        }
-        if (Input.GetKeyUp(KeyCode.UpArrow) && rig.velocity.y > 0f)
-        {
-            rig.velocity = new Vector2(rig.velocity.x, rig.velocity.y * 0.5f);
-        }
-    }
-    private void JumpAnimation()
-    {
-        //動畫
-        ani.SetBool("jump", jump);
-        ani.SetBool("jump reload", jumpReload);
-        ani.SetBool("falling", falling);
-        ani.SetBool("landing", !falling);
-    }
+    
     private void CheckState()
     {
         switch (state)
         {
-            case StateEnemy.idle:
-                break;
-            case StateEnemy.walk:
-                break;
-            case StateEnemy.track:
-                break;
             case StateEnemy.attack:
                 Attack();
                 break;
             case StateEnemy.dead:
-                break;
-            case StateEnemy.hurt:
                 break;
             default:
                 break;
@@ -250,5 +152,5 @@ public class GrayKnight : MonoBehaviour
 // 語法: 修飾詞 enum 列舉名稱{選項1, 選項2, ....., 選項N}
 enum StateEnemy
 {
-    idle, walk, track, attack, dead, hurt
+    idle, attack, dead, hurt
 }
