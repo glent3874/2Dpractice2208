@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 橘色玩家
+/// </summary>
 public class OrangePlayer : MonoBehaviour
 {
     #region 欄位
@@ -36,10 +39,13 @@ public class OrangePlayer : MonoBehaviour
     #region 事件
     private void Update()
     {
-
         Move();
         Jump();
     }
+
+    /// <summary>
+    /// 繪製偵測區域
+    /// </summary>
     private void OnDrawGizmos()
     {
         //地板偵測繪製區域

@@ -10,9 +10,9 @@ public class GrayKnight : MonoBehaviour
 {
     #region 欄位
     [Header("最大血量"), Range(0, 500)]
-    public int hp = 100;
+    public int maxHp = 100;
     [Header("目前血量")]
-    public int currentHealth;
+    public int currentHp;
     public HealthBar healthBar;
     [Header("攻擊力"), Range(0, 1000)]
     public int attack = 20;
@@ -26,36 +26,28 @@ public class GrayKnight : MonoBehaviour
     public float[] attackDelay;
     [Header("死亡事件")]
     public UnityEvent onDead;
-
-    // 將私人欄位顯示在屬性面板上
-    [SerializeField]
-    private StateEnemy state;
-
-    private Rigidbody2D rig;
-    private Animator ani;
-    private Player player;
+    [SerializeField] Rigidbody2D rig;
+    [SerializeField] Animator ani;
+    [SerializeField] Player player;
+    [SerializeField] CapsuleCollider2D CapsuleCollider2D;
     Collider2D hit;
     #endregion
 
     #region 事件
     private void Start()
     {
-        #region 初始化數值
-        currentHealth = hp;
-        healthBar.SetMaxHealth(hp);
-        #endregion
-
-        #region 取得元件與玩家類別
-        rig = GetComponent<Rigidbody2D>();
-
-        player = GameObject.Find("Player").GetComponent<Player>();
-        #endregion
+        currentHp = maxHp;              //初始化血量
+        healthBar.SetMaxHealth(maxHp);  //填滿血條
     }
+
     private void Update()
     {
-        CheckState();
-        CheckPlayerInAttackArea();
+        CheckPlayerInAttackArea();      //檢查玩家是否進入攻擊區域
     }
+
+    /// <summary>
+    /// 繪製攻擊gizmos
+    /// </summary>
     private void OnDrawGizmos()
     {
         //繪製攻擊判定區域
@@ -69,88 +61,75 @@ public class GrayKnight : MonoBehaviour
     #endregion
 
     #region 方法
-    
-    private void CheckState()
-    {
-        switch (state)
-        {
-            case StateEnemy.attack:
-                Attack();
-                break;
-            case StateEnemy.dead:
-                break;
-            default:
-                break;
-        }
-    }
+    /// <summary>
+    /// 受傷
+    /// </summary>
+    /// <param name="damage">傷害量</param>
     public void Hurt(int damage)
     {
-        currentHealth -= damage;
-        healthBar.SetHealth(currentHealth);
-        if (timerAttack < (cdAttack - 0.5f))
+        currentHp -= damage;                    //當前血量減掉傷害量
+        healthBar.SetHealth(currentHp);         //設置血條
+        if (timerAttack < (cdAttack - 0.5f))    //剛攻擊完可以進入受傷動畫
             ani.SetTrigger("hurt");
-        if (currentHealth <= 0) Dead();
+        if (currentHp <= 0) Dead();             //血量少於零死亡
     }
+
+    /// <summary>
+    /// 死亡
+    /// </summary>
     private void Dead()
     {
-        currentHealth = 0;
-        ani.SetBool("dead", true);
-        state = StateEnemy.dead;
-        GetComponent<CapsuleCollider2D>().enabled = false;
-        rig.velocity = Vector3.zero;
-        rig.constraints = RigidbodyConstraints2D.FreezeAll;
-        onDead.Invoke();
-        enabled = false;
+        currentHp = 0;                          //血量歸零
+        ani.SetBool("dead", true);              //開啟死亡動畫
+        CapsuleCollider2D.enabled = false;      //取消碰撞器
+        onDead.Invoke();                        //啟動死亡事件
+        enabled = false;                        //關閉此腳本
     }
+
+    /// <summary>
+    /// 檢查玩家是否進入攻擊範圍
+    /// </summary>
     private void CheckPlayerInAttackArea()
     {
+        //產生判定區域
         hit = Physics2D.OverlapBox(
-            transform.position +
-            transform.right * checkAttackOffset.x +
-            transform.up * checkAttackOffset.y,
+            transform.position + 
+            transform.right * checkAttackOffset.x + 
+            transform.up * checkAttackOffset.y, 
             checkAttackSize, 0, 1 << 7);
-        if (hit) state = StateEnemy.attack;
-        else
-        {
-            state = StateEnemy.idle;
-            timerAttack = cdAttack - 0.5f;
-        }
+        if (hit) Attack();                      //如果進入範圍就進入攻擊狀態
+        else 
+            timerAttack = cdAttack - 0.5f;      //離開範圍就重設攻擊冷卻計時器
     }
+
+    /// <summary>
+    /// 攻擊
+    /// </summary>
     private void Attack()
     {
-        if (timerAttack < cdAttack)
-        {
+        if (timerAttack < cdAttack)                             //攻擊冷卻計時器
             timerAttack += Time.deltaTime;
-            //print(timerAttack);
-        }
-        else
+        else                                                    //時間到就攻擊
         {
-            AttackMethod();
+            timerAttack = 0;                                    //歸零計時器
+            ani.SetTrigger("attack");                           //啟動攻擊動畫
+            StartCoroutine(DelaySendDamageToPlayer());          //啟動傷害延遲協程
         }
     }
-    private void AttackMethod()
-    {
-        timerAttack = 0;
-        ani.SetTrigger("attack");
-        //print("攻擊");
-        StartCoroutine(DelaySendDamageToPlayer());
-    }
+    
+    /// <summary>
+    /// 延遲傷害協程
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator DelaySendDamageToPlayer()
     {
+        //延遲傷害的計算使其與動畫同步
         for (int i = 0; i < attackDelay.Length; i++)
         {
-            yield return new WaitForSeconds(attackDelay[i]);
-
-            if (hit) player.Hurt(attack);
+            yield return new WaitForSeconds(attackDelay[i]);    //在此等待設定的時間
+            if (hit) player.Hurt(attack);                       //如果玩家還在攻擊範圍就計算傷害
         }
     }
     #endregion
 }
-//定義列舉
-// 1. 使用關鍵字 enum 定義列舉以及包含的選項, 可以在類別外定義
-// 2. 需要有一個欄位定義為此列舉類型
-// 語法: 修飾詞 enum 列舉名稱{選項1, 選項2, ....., 選項N}
-enum StateEnemy
-{
-    idle, attack, dead, hurt
-}
+
