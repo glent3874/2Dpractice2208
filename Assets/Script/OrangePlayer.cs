@@ -64,30 +64,38 @@ public class OrangePlayer : MonoBehaviour
             transform.up * wallOffset.y,
             wallRadius);
     }
+
+    /// <summary>
+    /// 碰撞器偵測
+    /// </summary>
+    /// <param name="collision"></param>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("Collectable"))
+        if(collision.CompareTag("Collectable"))                     //如果碰撞的物件標籤是collectable
         {
-            Destroy(collision.gameObject);
-            GameoverController2.countAllCoins--;
+            Destroy(collision.gameObject);                          //移除碰撞的物件
+            GameoverController2.countAllCoins--;                    //金幣數量-1
         }
     }
     #endregion
 
     #region 方法
+    /// <summary>
+    /// 移動
+    /// </summary>
     private void Move()
     {
-        ad = Input.GetAxis("Horizontal");
+        ad = Input.GetAxis("Horizontal");                           //取得水平輸入值
 
         Vector2 move;
-        move.x = ad * moveSpeed;
-        move.y = rb.velocity.y;
-
-        Vector2 轉換座標 = this.transform.TransformVector(move);
-
-        rb.velocity = 轉換座標;
+        move.x = ad * moveSpeed;                                    //水平軸移動為水平輸入值*移動速度
+        move.y = rb.velocity.y;                                     //垂直軸不動
+        rb.velocity = move;
     }
 
+    /// <summary>
+    /// 跳躍
+    /// </summary>
     private void Jump()
     {
         //地板偵測碰撞區域
@@ -97,8 +105,8 @@ public class OrangePlayer : MonoBehaviour
             transform.up * groundOffset.y,
             groundRadius, 0, 1 << 6);
 
-        if (groundHit) onGround = true;
-        else onGround = false;
+        if (groundHit) onGround = true;                                     //有撞到地板就開啟onground
+        else onGround = false;                                              //沒有就關閉onground
 
         //牆壁偵測碰撞區域
         Collider2D wallHit = Physics2D.OverlapBox(
@@ -107,14 +115,14 @@ public class OrangePlayer : MonoBehaviour
             transform.up * wallOffset.y,
             wallRadius, 0, 1 << 6);
 
-        if (wallHit && !groundHit && Input.GetAxis("Horizontal") != 0) 
+        if (wallHit && !groundHit && Input.GetAxis("Horizontal") != 0)      //如果有碰到牆壁且沒有碰到地板且水平軸有輸入值就開啟wallsliding
             wallSliding = true;
-        else wallSliding = false;
+        else wallSliding = false;                                           //沒有就關閉wallsliding
 
-        if (wallSliding) 
+        if (wallSliding)                                                    //開始執行牆壁滑行物理
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
 
-        if(Input.GetKeyDown(KeyCode.UpArrow) &&　wallSliding)
+        if(Input.GetKeyDown(KeyCode.UpArrow) &&　wallSliding)               //牆壁跳躍
         {
             wallJumping = true;
             Invoke("SetWallJumpingToFalse", wallJumpTime);
