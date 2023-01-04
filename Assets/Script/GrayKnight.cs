@@ -30,6 +30,7 @@ public class GrayKnight : MonoBehaviour
     [SerializeField] Animator ani;
     [SerializeField] Player player;
     [SerializeField] CapsuleCollider2D CapsuleCollider2D;
+    [SerializeField] LayerMask attackMask;
     Collider2D hit;
     #endregion
 
@@ -96,7 +97,7 @@ public class GrayKnight : MonoBehaviour
             transform.position + 
             transform.right * checkAttackOffset.x + 
             transform.up * checkAttackOffset.y, 
-            checkAttackSize, 0, 1 << 7);
+            checkAttackSize, 0, attackMask);
         if (hit) Attack();                      //如果進入範圍就進入攻擊狀態
         else 
             timerAttack = cdAttack - 0.5f;      //離開範圍就重設攻擊冷卻計時器

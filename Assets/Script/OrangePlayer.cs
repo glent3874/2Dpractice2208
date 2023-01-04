@@ -32,6 +32,7 @@ public class OrangePlayer : MonoBehaviour
     public float xWallForce;
     public float yWallForce;
     public float wallJumpTime;
+    [SerializeField] LayerMask groundMask;
 
     private float ad;
     #endregion
@@ -103,7 +104,7 @@ public class OrangePlayer : MonoBehaviour
             transform.position +
             transform.right * groundOffset.x +
             transform.up * groundOffset.y,
-            groundRadius, 0, 1 << 6);
+            groundRadius, 0, groundMask);
 
         if (groundHit) onGround = true;                                     //有撞到地板就開啟onground
         else onGround = false;                                              //沒有就關閉onground
@@ -113,7 +114,7 @@ public class OrangePlayer : MonoBehaviour
             transform.position +
             transform.right * wallOffset.x +
             transform.up * wallOffset.y,
-            wallRadius, 0, 1 << 6);
+            wallRadius, 0, groundMask);
 
         if (wallHit && !groundHit && Input.GetAxis("Horizontal") != 0)      //如果有碰到牆壁且沒有碰到地板且水平軸有輸入值就開啟wallsliding
             wallSliding = true;
@@ -125,16 +126,17 @@ public class OrangePlayer : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.UpArrow) &&　wallSliding)               //牆壁跳躍
         {
             wallJumping = true;
-            Invoke("SetWallJumpingToFalse", wallJumpTime);
+            Invoke("SetWallJumpingToFalse", wallJumpTime);                  //關閉正在從牆壁跳躍狀態
         }
 
-        if (wallJumping) rb.velocity = new Vector2(xWallForce * -ad, yWallForce);
+        if (wallJumping) rb.velocity = new Vector2(xWallForce * -ad, yWallForce);   //從牆壁推出
 
         //按下跳躍鍵跳躍
         if(Input.GetKeyDown(KeyCode.UpArrow) && onGround)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpHeight);
         }
+
         //放開跳躍鍵開始掉落
         if(Input.GetKeyUp(KeyCode.UpArrow) && rb.velocity.y > 0f)
         {
@@ -142,6 +144,9 @@ public class OrangePlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 取消從牆壁跳躍的力
+    /// </summary>
     private void SetWallJumpingToFalse()
     {
         wallJumping = false;

@@ -854,6 +854,9 @@ MonoBehaviour:
   ani: {fileID: 1015169977}
   player: {fileID: 1370367196}
   CapsuleCollider2D: {fileID: 1015169978}
+  attackMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!50 &1015169980
 Rigidbody2D:
   serializedVersion: 4
@@ -1510,8 +1513,8 @@ GameObject:
   - component: {fileID: 1370367194}
   - component: {fileID: 1370367193}
   - component: {fileID: 1370367192}
-  - component: {fileID: 1370367196}
   - component: {fileID: 1370367197}
+  - component: {fileID: 1370367196}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -1668,6 +1671,14 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  rig: {fileID: 1370367192}
+  ani: {fileID: 1370367197}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 64
+  attackMask:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!95 &1370367197
 Animator:
   serializedVersion: 4

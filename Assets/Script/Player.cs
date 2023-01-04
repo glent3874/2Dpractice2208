@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// 玩家
+/// </summary>
 public class Player : MonoBehaviour
 {
     #region 欄位
@@ -40,42 +43,42 @@ public class Player : MonoBehaviour
     public Vector3 checkAttackSize;
     [Header("死亡事件")]
     public UnityEvent onDead;
-
-    private AudioSource aud;
-    private Rigidbody2D rig;
-    private Animator ani;
-    /// <summary>
-    /// 玩家水平輸入值
-    /// </summary>
-    private float moveValue;
-    private bool isAttack;
-    private float attackcooldowntimer;
+    [SerializeField] Rigidbody2D rig;
+    [SerializeField] Animator ani;
+    [SerializeField] LayerMask groundMask;
+    [SerializeField] LayerMask attackMask;
+    private float moveValue;                //水平輸入值
+    private bool isAttack;                  //攻擊中
+    private float attackcooldowntimer;      //攻擊冷卻計時器
     #endregion
 
     #region 事件
     private void Start()
     {
-        healthBar.SetMaxHealth(hp);
-        rig = GetComponent<Rigidbody2D>();
-        ani = GetComponent<Animator>();
+        healthBar.SetMaxHealth(hp);         //設定血條為最大值
     }
     private void Update()
     {
-        GetPlayerInputHorizontal();
-        TurnDirection();
-        Jump();
-        JumpAnimation();
-        Attack();
+        TurnDirection();                    //改變玩家方向
+        Jump();                             //跳躍
+        Attack();                           //攻擊
     }
+    /// <summary>
+    /// 物理系統update
+    /// </summary>
     private void FixedUpdate()
     {
-        Move(moveValue);
+        Move();                             //移動
     }
+    /// <summary>
+    /// 繪製區域
+    /// </summary>
     private void OnDrawGizmos()
     {
         //繪製地板判定區域
         Gizmos.color = new Color(1, 0, 0, 0.3f);
         Gizmos.DrawSphere(transform.position + groundOffset, groundRadius);
+
         //繪製落地判定區域
         Gizmos.color = new Color(0, 1, 0, 0.3f);
         Gizmos.DrawSphere(transform.position + landingOffset, landingRadius);
@@ -92,33 +95,25 @@ public class Player : MonoBehaviour
 
     #region 方法
     /// <summary>
-    /// 取得玩家輸入水平軸向值: A D 左 右
-    /// </summary>
-    private void GetPlayerInputHorizontal()
-    {
-        //右 = 1 左 = -1 放開 = 0
-        moveValue = Input.GetAxisRaw("Horizontal");
-    }
-    /// <summary>
     /// 移動
     /// </summary>
     /// <param name="horizontal">水平數值</param>
-    private void Move(float horizontal)
+    private void Move()
     {
-        rig.velocity = new Vector2(horizontal * moveSpeed, rig.velocity.y);
-        
-        ani.SetBool("walk", horizontal != 0);
+        moveValue = Input.GetAxisRaw("Horizontal");                             //取得水平輸入值
+        rig.velocity = new Vector2(moveValue * moveSpeed, rig.velocity.y);      //移動
+        ani.SetBool("walk", moveValue != 0);                                    //水平輸入值不為0就移動
     }
     /// <summary>
-    /// 旋轉方向
+    /// 玩家方向
     /// </summary>
     private void TurnDirection()
     {
-        if(Input.GetKeyDown(KeyCode.RightArrow))
+        if (Input.GetKeyDown(KeyCode.RightArrow))                               //按下右就面向右
         {
             transform.eulerAngles = Vector3.zero;
         }
-        else if(Input.GetKeyDown(KeyCode.LeftArrow))
+        else if(Input.GetKeyDown(KeyCode.LeftArrow))                            //按下左就面向左
         {
             transform.eulerAngles = new Vector3(0, 180, 0);
         }
@@ -128,9 +123,8 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Jump()
     {
-        //站立判定
-        Collider2D hit = Physics2D.OverlapCircle(transform.position + groundOffset, groundRadius, 1 << 6);
-        if (hit)
+        Collider2D hit = Physics2D.OverlapCircle(transform.position + groundOffset, groundRadius, groundMask);      //站立判定
+        if (hit)                    //站在地板上
         {
             onGround = true;
             jumpReload = false;
@@ -140,18 +134,23 @@ public class Player : MonoBehaviour
         {
             onGround = false;
         }
-        //落地判定
-        Collider2D landingHit = Physics2D.OverlapCircle(transform.position + landingOffset, landingRadius, 1 << 6);
-        if (!landingHit)
-        {
-            falling = true;
-        }
-        if (landingHit && falling)
+        
+        Collider2D landingHit = Physics2D.OverlapCircle(transform.position + landingOffset, landingRadius, groundMask);     //落地判定
+
+        //滯空狀態
+        if (!landingHit) 
+            falling = true;         //正在掉落
+
+        //正在掉落準備落地
+        if (landingHit && falling)  
         {
             falling = false;
             jump = false;
         }
-        if (jump && rig.velocity.y < 5f) jumpReload = true;
+
+        //跳躍狀態進入最高點時
+        if (jump && rig.velocity.y < 5f) 
+            jumpReload = true;
 
         //跳躍物理
         if (Input.GetKeyDown(KeyCode.UpArrow) && onGround) 
@@ -159,14 +158,14 @@ public class Player : MonoBehaviour
             jump = true;
             rig.velocity = new Vector2(rig.velocity.x, jumpHeight);
         }
+
+        //掉落物理
         if (Input.GetKeyUp(KeyCode.UpArrow) && rig.velocity.y > 0f)
         {
             rig.velocity = new Vector2(rig.velocity.x, rig.velocity.y * 0.5f);
-        }
-    }
-    private void JumpAnimation()
-    {
-        //動畫
+        } 
+
+        //跳躍動畫
         ani.SetBool("jump", jump);
         ani.SetBool("jump reload", jumpReload);
         ani.SetBool("falling", falling);
@@ -177,26 +176,26 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Attack()
     {
-        //Idle 狀態才可以攻擊
+        //非攻擊 非移動 非跳躍 按下攻擊鍵 才可攻擊
         if (!isAttack && Input.GetKeyDown("x") && moveValue == 0 && !jump)
         {
             isAttack = true;
             ani.SetTrigger("attack");
 
-            Collider2D attackhit = Physics2D.OverlapBox(
+            Collider2D attackHit = Physics2D.OverlapBox(
                 transform.position +
                 transform.right * checkAttackOffset.x +
                 transform.up * checkAttackOffset.y,
-                checkAttackSize, 0, 1 << 8);
+                checkAttackSize, 0, attackMask);
 
-            if(attackhit)
-            {
-                attackhit.GetComponent<GrayKnight>().Hurt((int)attack);
-            }
+            if(attackHit)
+                attackHit.GetComponent<GrayKnight>().Hurt((int)attack);     //傳送傷害
         }
 
+        //攻擊後
         if(isAttack)
         {
+            //攻擊冷卻計時器
             if(attackcooldowntimer < cd)
             {
                 attackcooldowntimer += Time.deltaTime;
@@ -215,8 +214,8 @@ public class Player : MonoBehaviour
     public void Hurt(int damage)
     {
         hp -= damage;
-        healthBar.SetHealth(hp);
-        if (hp <= 0) Dead();
+        healthBar.SetHealth(hp);        //設定血條
+        if (hp <= 0) Dead();            //血量歸零時死亡
     }
     /// <summary>
     /// 死亡
@@ -225,19 +224,11 @@ public class Player : MonoBehaviour
     {
         hp = 0;
         ani.SetBool("dead",true);
-        GetComponent<CapsuleCollider2D>().enabled = false;
-        rig.velocity = Vector3.zero;
-        rig.constraints = RigidbodyConstraints2D.FreezeAll;
-        onDead.Invoke();
-        enabled = false;
-    }
-    /// <summary>
-    /// 吃道具
-    /// </summary>
-    /// <param name="propName">獲得的道具名稱</param>
-    private void EatProp(string propName)
-    {
-
+        GetComponent<CapsuleCollider2D>().enabled = false;      //關閉碰撞器
+        rig.velocity = Vector3.zero;                            //歸零移動
+        rig.constraints = RigidbodyConstraints2D.FreezeAll;     //鎖定物理系統
+        onDead.Invoke();                                        //死亡事件
+        enabled = false;                                        //關閉腳本
     }
     #endregion
 }
